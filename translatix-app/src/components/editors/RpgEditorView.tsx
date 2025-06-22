@@ -16,10 +16,14 @@ export default function RpgEditorView({ gameName, files, onGoBack }: RpgEditorVi
       <ThemeToggleButton />
       
       <header className="text-center mb-4 flex-shrink-0 pt-8">
-        <h1 className="text-2xl md:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
-          Trình Dịch Thuật Game RPG
-        </h1>
-      </header>
+  <h1 className="text-2xl md:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
+    Trình Dịch Thuật Game RPG
+  </h1>
+  <p className="mt-2 text-sm text-secondary">
+    Đang làm việc với: <span className="font-semibold text-primary">{gameName}</span>
+  </p>
+</header>
+
       
       {/* Container chính cho nội dung có thể cuộn */}
       <div className="flex flex-grow flex-col min-h-0 p-4 md:p-6">
@@ -41,11 +45,11 @@ export default function RpgEditorView({ gameName, files, onGoBack }: RpgEditorVi
               <span>Xuất file</span>
             </button>
           </div>
-          <div className="hidden md:block text-center text-sm truncate text-secondary flex-1">
+          {/* <div className="hidden md:block text-center text-sm truncate text-secondary flex-1">
             <p>
               Đang làm việc với: <span className="font-semibold text-primary">{gameName}</span>
             </p>
-          </div>
+          </div> */}
           <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-lg transition-colors flex items-center space-x-2">
             <Sparkles className="h-4 w-4" />
             <span>Chế độ dịch</span>
