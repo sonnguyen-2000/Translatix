@@ -6,12 +6,14 @@ import ThemeToggleButton from '@/components/ui/ThemeToggleButton';
 import RpgModal from '@/components/modals/RpgModal';
 import UnityModal from '@/components/modals/UnityModal';
 import UnrealModal from '@/components/modals/UnrealModal';
+import ComicModal from '@/components/modals/ComicModal'; // Mới
 import RpgEditorView from '@/components/editors/RpgEditorView';
 import UnityEditorView from '@/components/editors/UnityEditorView';
 import UnrealEditorView from '@/components/editors/UnrealEditorView';
+import ComicEditorView from '@/components/editors/ComicEditorView'; // Mới
 import { BookOpen, Box, Layers3, Shield } from 'lucide-react';
 
-type EditorType = 'rpg' | 'unity' | 'unreal';
+type EditorType = 'rpg' | 'unity' | 'unreal' | 'comic';
 
 export default function HomePage() {
     const [activeModal, setActiveModal] = useState<EditorType | null>(null);
@@ -19,8 +21,8 @@ export default function HomePage() {
     const [selectedProjectName, setSelectedProjectName] = useState('');
 
     const services = [
-        { id: 'rpg', title: "Dịch Game RPG", description: "Bản địa hóa cốt truyện, nhiệm vụ, vật phẩm và lời thoại nhân vật.", icon: <Shield size={32} /> },
-        { id: 'unity', title: "Dịch Game Unity", description: "Xử lý tệp ngôn ngữ, UI/UX và nội dung phức tạp.", icon: <Box size={32} /> },
+        { id: 'rpg', title: "Dịch Game RPG", description: "Bản địa hóa cốt truyện, nhiệm vụ, và lời thoại nhân vật.", icon: <Shield size={32} /> },
+        { id: 'unity', title: "Dịch Game Unity", description: "Xử lý tệp ngôn ngữ, UI/UX và nội dung phức tạp.", icon: <Box size={32} />, isHighlighted: true },
         { id: 'unreal', title: "Dịch Game Unreal", description: "Tích hợp và dịch thuật chuyên sâu cho các dự án Unreal.", icon: <Layers3 size={32} /> },
         { id: 'comic', title: "Dịch Truyện Tranh", description: "Dịch thuật và biên tập lời thoại, giữ trọn vẹn phong cách.", icon: <BookOpen size={32} /> }
     ];
@@ -37,14 +39,14 @@ export default function HomePage() {
         setSelectedProjectName('');
     };
 
-    if (activeEditor === 'rpg') {
-        return <RpgEditorView gameName={selectedProjectName} onGoBack={handleBackToPlatform} />;
-    }
-    if (activeEditor === 'unity') {
-        return <UnityEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
-    }
-    if (activeEditor === 'unreal') {
-        return <UnrealEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+    if (activeEditor) {
+        switch (activeEditor) {
+            case 'rpg': return <RpgEditorView gameName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+            case 'unity': return <UnityEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+            case 'unreal': return <UnrealEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+            case 'comic': return <ComicEditorView chapterName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+            default: setActiveEditor(null);
+        }
     }
 
     return (
@@ -52,29 +54,29 @@ export default function HomePage() {
             <ThemeToggleButton />
             <main className="min-h-screen flex flex-col items-center justify-center p-8">
                 <header className="text-center mb-12 md:mb-16">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-primary mb-3">Chọn Nền Tảng Dịch Thuật</h1>
-                    <p className="text-lg text-secondary max-w-2xl mx-auto">Chúng tôi mang đến giải pháp bản địa hóa chuyên nghiệp cho các dự án game và truyện tranh của bạn.</p>
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tight text-primary mb-3">Chọn Nền Tảng Dịch Thuật</h1>
+                    <p className="text-lg text-secondary max-w-2xl mx-auto">Giải pháp bản địa hóa chuyên nghiệp cho các dự án game và truyện tranh của bạn.</p>
                 </header>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-7xl mx-auto">
                     {services.map((service) => (
                         <div key={service.id} 
                              className={`platform-card-wrapper ${service.id}-card cursor-pointer`}
-                             onClick={() => service.id !== 'comic' ? setActiveModal(service.id as EditorType) : alert('Chức năng này sắp ra mắt!')}
+                             onClick={() => setActiveModal(service.id as EditorType)}
                         >
                             <ServiceCard
                                 title={service.title}
                                 description={service.description}
                                 icon={service.icon}
+                                isHighlighted={service.isHighlighted}
                             />
                         </div>
                     ))}
                 </div>
             </main>
-
             <RpgModal isOpen={activeModal === 'rpg'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
             <UnityModal isOpen={activeModal === 'unity'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
             <UnrealModal isOpen={activeModal === 'unreal'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
+            <ComicModal isOpen={activeModal === 'comic'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
         </div>
     );
 }
