@@ -2,7 +2,7 @@
 
 /* === Biến màu chung cho Theme === */
 :root[data-theme='light'] {
-    --bg-main: #f5f6fa; --bg-surface-1: #ffffff; --bg-surface-2: #f3f4f6; --bg-hover: #e5e7eb; --bg-active: #3b82f6; --border-color: #e5e7eb; --text-primary: #111827; --text-secondary: #6b7280; --aurora-1: #a78bfa; --aurora-2: #818cf8; --modal-border-color: rgba(59, 130, 246, 0.4); --modal-shadow: 0 0 30px rgba(59, 130, 246, 0.15); --icon-rpg-color: #3b82f6; --icon-unity-color: #6366f1; --icon-unreal-color: #8b5cf6; --icon-comic-color: #ec4899; --status-untranslated: #ef4444; --status-translated: #22c55e; --status-review: #eab308;
+    --bg-main: #f5f6fa; --bg-surface-1: #ffffff; --bg-surface-2: #c1c4ca; --bg-hover: #e5e7eb; --bg-active: #3b82f6; --border-color: #e5e7eb; --text-primary: #111827; --text-secondary: #6b7280; --aurora-1: #a78bfa; --aurora-2: #818cf8; --modal-border-color: rgba(59, 130, 246, 0.4); --modal-shadow: 0 0 30px rgba(59, 130, 246, 0.15); --icon-rpg-color: #3b82f6; --icon-unity-color: #6366f1; --icon-unreal-color: #8b5cf6; --icon-comic-color: #ec4899; --status-untranslated: #ef4444; --status-translated: #22c55e; --status-review: #eab308;
 }
 :root[data-theme='dark'] {
     --bg-main: #000000; --bg-surface-1: #111827; --bg-surface-2: #1f2937; --bg-hover: #374151; --bg-active: #2563eb; --border-color: #374151; --text-primary: #f9fafb; --text-secondary: #9ca3af; --aurora-1: #7c3aed; --aurora-2: #4f46e5; --modal-border-color: rgba(59, 130, 246, 0.3); --modal-shadow: 0 0 40px rgba(59, 130, 246, 0.2); --icon-rpg-color: #60a5fa; --icon-unity-color: #818cf8; --icon-unreal-color: #a78bfa; --icon-comic-color: #f472b6; --status-untranslated: #f87171; --status-translated: #4ade80; --status-review: #facc15;

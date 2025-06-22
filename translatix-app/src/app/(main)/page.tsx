@@ -12,6 +12,10 @@ import UnityEditorView from '@/components/editors/UnityEditorView';
 import UnrealEditorView from '@/components/editors/UnrealEditorView';
 import ComicEditorView from '@/components/editors/ComicEditorView'; // Mới
 import { BookOpen, Box, Layers3, Shield } from 'lucide-react';
+import { mockChapter } from '@/data/mockChapter';
+import { mockRpgFiles } from '@/data/mockRpgFiles';
+import { mockUnityProject } from '@/data/mockUnity';
+import { mockUnrealData } from '@/data/mockUnreal';
 
 type EditorType = 'rpg' | 'unity' | 'unreal' | 'comic';
 
@@ -41,10 +45,19 @@ export default function HomePage() {
 
     if (activeEditor) {
         switch (activeEditor) {
-            case 'rpg': return <RpgEditorView gameName={selectedProjectName} onGoBack={handleBackToPlatform} />;
-            case 'unity': return <UnityEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
-            case 'unreal': return <UnrealEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
-            case 'comic': return <ComicEditorView chapterName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+            case 'rpg':
+  return <RpgEditorView gameName={selectedProjectName} files={mockRpgFiles} onGoBack={handleBackToPlatform} />;
+           case 'unity': return <UnityEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+            case 'unreal':
+  return <UnrealEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+            case 'comic':
+  return (
+    <ComicEditorView
+      chapterName={selectedProjectName}
+      chapterData={mockChapter}
+      onGoBack={handleBackToPlatform}
+    />
+  );
             default: setActiveEditor(null);
         }
     }
