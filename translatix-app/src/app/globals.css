@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/* === Biến màu chung cho Theme === */
+:root[data-theme='light'] {
+    --bg-main: #f5f6fa; --bg-surface-1: #ffffff; --bg-surface-2: #f3f4f6; --bg-hover: #e5e7eb; --bg-active: #3b82f6; --border-color: #e5e7eb; --text-primary: #111827; --text-secondary: #6b7280; --aurora-1: #a78bfa; --aurora-2: #818cf8; --modal-border-color: rgba(59, 130, 246, 0.4); --modal-shadow: 0 0 30px rgba(59, 130, 246, 0.15); --icon-rpg-color: #3b82f6; --icon-unity-color: #6366f1; --icon-unreal-color: #8b5cf6; --icon-comic-color: #ec4899; --status-untranslated: #ef4444; --status-translated: #22c55e; --status-review: #eab308;
+}
+:root[data-theme='dark'] {
+    --bg-main: #000000; --bg-surface-1: #111827; --bg-surface-2: #1f2937; --bg-hover: #374151; --bg-active: #2563eb; --border-color: #374151; --text-primary: #f9fafb; --text-secondary: #9ca3af; --aurora-1: #7c3aed; --aurora-2: #4f46e5; --modal-border-color: rgba(59, 130, 246, 0.3); --modal-shadow: 0 0 40px rgba(59, 130, 246, 0.2); --icon-rpg-color: #60a5fa; --icon-unity-color: #818cf8; --icon-unreal-color: #a78bfa; --icon-comic-color: #f472b6; --status-untranslated: #f87171; --status-translated: #4ade80; --status-review: #facc15;
+}
+body { background-color: var(--bg-main); color: var(--text-primary); overflow-x: hidden; position: relative; }
+body::before, body::after { content: ''; position: fixed; top: 50%; left: 50%; width: 800px; height: 800px; border-radius: 50%; opacity: 0.15; filter: blur(100px); z-index: 0; animation: move-aurora 20s infinite alternate; }
+body::before { background-color: var(--aurora-1); transform: translate(-70%, -70%); }
+body::after { background-color: var(--aurora-2); transform: translate(20%, -30%); animation-delay: -10s; }
+@keyframes move-aurora { 0% { transform: translate(-70%, -70%) rotate(0deg) scale(1); } 100% { transform: translate(20%, -30%) rotate(360deg) scale(1.2); } }
+.main-content { position: relative; z-index: 1; }
+.platform-card { background-color: color-mix(in srgb, var(--bg-surface-1) 80%, transparent); backdrop-filter: blur(12px); border: 1px solid var(--border-color); transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
+.platform-card-wrapper:hover .platform-card { transform: translateY(-8px); }
+.rpg-card:hover .platform-card { border-color: var(--icon-rpg-color); box-shadow: 0 0 25px 0px color-mix(in srgb, var(--icon-rpg-color) 40%, transparent); }
+.unity-card:hover .platform-card { border-color: var(--icon-unity-color); box-shadow: 0 0 25px 0px color-mix(in srgb, var(--icon-unity-color) 40%, transparent); }
+.unreal-card:hover .platform-card { border-color: var(--icon-unreal-color); box-shadow: 0 0 25px 0px color-mix(in srgb, var(--icon-unreal-color) 40%, transparent); }
+.comic-card:hover .platform-card { border-color: var(--icon-comic-color); box-shadow: 0 0 25px 0px color-mix(in srgb, var(--icon-comic-color) 40%, transparent); }
+.modal-content { background-color: var(--bg-surface-1); border: 1px solid var(--modal-border-color); box-shadow: var(--modal-shadow); }
+.border-default { border-color: var(--border-color); }
+.bg-surface-1 { background-color: var(--bg-surface-1); }
+.bg-surface-2 { background-color: var(--bg-surface-2); }
+.bg-hover:hover { background-color: var(--bg-hover); }
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.card { box-shadow: var(--shadow); }
+.tree-item, .table-row { transition: background-color 0.15s ease-in-out; }
+.tree-item.active { background-color: var(--bg-active); color: white; }
+.tree-item.active .icon, .tree-item.active .text-secondary { color: white !important; }
+.tree-item:hover:not(.active) { background-color: var(--bg-hover); }
+.table-row:hover { background-color: var(--bg-surface-2); }
+

@@ -1,0 +1,80 @@
+'use client';
+
+import { useState } from 'react';
+import ServiceCard from '@/components/ui/ServiceCard';
+import ThemeToggleButton from '@/components/ui/ThemeToggleButton';
+import RpgModal from '@/components/modals/RpgModal';
+import UnityModal from '@/components/modals/UnityModal';
+import UnrealModal from '@/components/modals/UnrealModal';
+import RpgEditorView from '@/components/editors/RpgEditorView';
+import UnityEditorView from '@/components/editors/UnityEditorView';
+import UnrealEditorView from '@/components/editors/UnrealEditorView';
+import { BookOpen, Box, Layers3, Shield } from 'lucide-react';
+
+type EditorType = 'rpg' | 'unity' | 'unreal';
+
+export default function HomePage() {
+    const [activeModal, setActiveModal] = useState<EditorType | null>(null);
+    const [activeEditor, setActiveEditor] = useState<EditorType | null>(null);
+    const [selectedProjectName, setSelectedProjectName] = useState('');
+
+    const services = [
+        { id: 'rpg', title: "Dịch Game RPG", description: "Bản địa hóa cốt truyện, nhiệm vụ, vật phẩm và lời thoại nhân vật.", icon: <Shield size={32} /> },
+        { id: 'unity', title: "Dịch Game Unity", description: "Xử lý tệp ngôn ngữ, UI/UX và nội dung phức tạp.", icon: <Box size={32} /> },
+        { id: 'unreal', title: "Dịch Game Unreal", description: "Tích hợp và dịch thuật chuyên sâu cho các dự án Unreal.", icon: <Layers3 size={32} /> },
+        { id: 'comic', title: "Dịch Truyện Tranh", description: "Dịch thuật và biên tập lời thoại, giữ trọn vẹn phong cách.", icon: <BookOpen size={32} /> }
+    ];
+
+    const handleProjectSelect = (projectName: string) => {
+        const currentModal = activeModal;
+        setSelectedProjectName(projectName);
+        setActiveModal(null);
+        setTimeout(() => setActiveEditor(currentModal), 300);
+    };
+
+    const handleBackToPlatform = () => {
+        setActiveEditor(null);
+        setSelectedProjectName('');
+    };
+
+    if (activeEditor === 'rpg') {
+        return <RpgEditorView gameName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+    }
+    if (activeEditor === 'unity') {
+        return <UnityEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+    }
+    if (activeEditor === 'unreal') {
+        return <UnrealEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+    }
+
+    return (
+        <div className="main-content">
+            <ThemeToggleButton />
+            <main className="min-h-screen flex flex-col items-center justify-center p-8">
+                <header className="text-center mb-12 md:mb-16">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-primary mb-3">Chọn Nền Tảng Dịch Thuật</h1>
+                    <p className="text-lg text-secondary max-w-2xl mx-auto">Chúng tôi mang đến giải pháp bản địa hóa chuyên nghiệp cho các dự án game và truyện tranh của bạn.</p>
+                </header>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-7xl mx-auto">
+                    {services.map((service) => (
+                        <div key={service.id} 
+                             className={`platform-card-wrapper ${service.id}-card cursor-pointer`}
+                             onClick={() => service.id !== 'comic' ? setActiveModal(service.id as EditorType) : alert('Chức năng này sắp ra mắt!')}
+                        >
+                            <ServiceCard
+                                title={service.title}
+                                description={service.description}
+                                icon={service.icon}
+                            />
+                        </div>
+                    ))}
+                </div>
+            </main>
+
+            <RpgModal isOpen={activeModal === 'rpg'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
+            <UnityModal isOpen={activeModal === 'unity'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
+            <UnrealModal isOpen={activeModal === 'unreal'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
+        </div>
+    );
+}
