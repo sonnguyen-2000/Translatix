@@ -7,7 +7,7 @@ export default function ThemeToggleButton() {
     const { theme, toggleTheme } = useTheme();
 
     return (
-        <div className="fixed top-220 right-6 z-50">
+        <div className="fixed bottom-6 right-6 z-[999]">
             <button
                 onClick={toggleTheme}
                 className="p-2 rounded-full bg-surface-1/80 backdrop-blur-sm border border-default hover:bg-surface-2 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"

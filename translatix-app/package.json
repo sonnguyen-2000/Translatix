@@ -2,11 +2,16 @@
   "name": "translatix-app",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
+  "homepage": "./",
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "concurrently \"npm:dev:next\" \"npm:dev:electron\"",
+    "dev:next": "next dev --turbopack",
+    "dev:electron": "wait-on http://localhost:3000 && electron .",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dist": "npm run build && electron-builder"
   },
   "dependencies": {
     "lucide-react": "^0.522.0",
@@ -20,9 +25,34 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.0",
+    "electron": "^36.5.0",
+    "electron-builder": "^26.0.12",
+    "electron-is-dev": "^3.0.1",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wait-on": "^8.0.3"
+  },
+  "build": {
+    "appId": "com.sonnguyen.translatix",
+    "productName": "Translatix",
+    "files": [
+       "out/**/*",
+       "electron/main.js"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }

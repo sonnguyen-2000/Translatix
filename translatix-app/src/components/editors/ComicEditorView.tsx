@@ -66,7 +66,7 @@ export default function ComicEditorView({ chapterName, chapterData, onGoBack }: 
         {/* Main content */}
         <main className="flex-grow flex-1 grid grid-cols-12 gap-4 p-4 min-h-0">
           {/* Original Page */}
-          <div className="col-span-12 md:col-span-5 bg-surface-1 flex flex-col min-h-0 card rounded-lg p-2">
+          <div className="col-span-12 md:col-span-4 bg-surface-1 flex flex-col min-h-0 card rounded-lg p-2">
             <h3 className="text-xs uppercase font-bold text-secondary text-center mb-2">Bản gốc</h3>
             <div className="flex-grow bg-surface-2 rounded flex items-center justify-center overflow-hidden">
               <img src={activePageData?.url} alt="Original Page" className="max-w-full max-h-full object-contain" />
