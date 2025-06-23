@@ -1,31 +1,16 @@
 // electron/main.js
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const path = require('path');
-const isDev = require('electron-is-dev');
+const { app, BrowserWindow } = require('electron');
+const { createMainWindow } = require('./windows');
+const { registerIpcHandlers } = require('./ipcHandlers');
 
-function createWindow() {
-  const win = new BrowserWindow({
-    width: 1280,
-    height: 800,
-    webPreferences: {
-      nodeIntegration: true, // Cần thiết để sử dụng 'require' trong renderer process
-      contextIsolation: false, // Tắt để 'require' hoạt động
-    },
-  });
+let mainWindow;
 
-  // Đường dẫn sẽ khác nhau cho môi trường dev và production
-  const startUrl = isDev
-    ? 'http://localhost:3000'
-    : `file://${path.join(__dirname, '../out/index.html')}`; // <-- THAY ĐỔI QUAN TRỌNG
-
-  win.loadURL(startUrl);
-
-  if (isDev) {
-    win.webContents.openDevTools();
-  }
+function initializeApp() {
+  mainWindow = createMainWindow();
+  registerIpcHandlers();
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(initializeApp);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -35,14 +20,6 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+    initializeApp();
   }
-});
-
-// Xử lý sự kiện mở dialog chọn thư mục từ renderer process
-ipcMain.handle('open-folder-dialog', async () => {
-  const result = await dialog.showOpenDialog({
-    properties: ['openDirectory']
-  });
-  return result;
 });
