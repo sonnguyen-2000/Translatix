@@ -1,3 +1,5 @@
+// src/app/(main)/page.tsx
+
 'use client';
 
 import { useState } from 'react';
@@ -6,16 +8,13 @@ import ThemeToggleButton from '@/components/ui/ThemeToggleButton';
 import RpgModal from '@/components/modals/RpgModal';
 import UnityModal from '@/components/modals/UnityModal';
 import UnrealModal from '@/components/modals/UnrealModal';
-import ComicModal from '@/components/modals/ComicModal'; // Mới
+import ComicModal from '@/components/modals/ComicModal';
 import RpgEditorView from '@/components/editors/RpgEditorView';
 import UnityEditorView from '@/components/editors/UnityEditorView';
 import UnrealEditorView from '@/components/editors/UnrealEditorView';
-import ComicEditorView from '@/components/editors/ComicEditorView'; // Mới
+import ComicEditorView, { Chapter } from '@/components/editors/ComicEditorView';
 import { BookOpen, Box, Layers3, Shield } from 'lucide-react';
-import { mockChapter } from '@/data/mockChapter';
 import { mockRpgFiles } from '@/data/mockRpgFiles';
-import { mockUnityProject } from '@/data/mockUnity';
-import { mockUnrealData } from '@/data/mockUnreal';
 
 type EditorType = 'rpg' | 'unity' | 'unreal' | 'comic';
 
@@ -23,41 +22,52 @@ export default function HomePage() {
     const [activeModal, setActiveModal] = useState<EditorType | null>(null);
     const [activeEditor, setActiveEditor] = useState<EditorType | null>(null);
     const [selectedProjectName, setSelectedProjectName] = useState('');
+    const [loadedChapterData, setLoadedChapterData] = useState<Chapter | null>(null);
 
     const services = [
         { id: 'rpg', title: "Dịch Game RPG", description: "Bản địa hóa cốt truyện, nhiệm vụ, và lời thoại nhân vật.", icon: <Shield size={32} /> },
-        { id: 'unity', title: "Dịch Game Unity", description: "Xử lý tệp ngôn ngữ, UI/UX và nội dung phức tạp.", icon: <Box size={32} />, isHighlighted: true },
+        { id: 'unity', title: "Dịch Game Unity", description: "Xử lý tệp ngôn ngữ, UI/UX và nội dung phức tạp.", icon: <Box size={32} /> },
         { id: 'unreal', title: "Dịch Game Unreal", description: "Tích hợp và dịch thuật chuyên sâu cho các dự án Unreal.", icon: <Layers3 size={32} /> },
         { id: 'comic', title: "Dịch Truyện Tranh", description: "Dịch thuật và biên tập lời thoại, giữ trọn vẹn phong cách.", icon: <BookOpen size={32} /> }
     ];
 
-    const handleProjectSelect = (projectName: string) => {
-        const currentModal = activeModal;
+    // Hàm này được gọi từ BÊN TRONG MODAL sau khi có dữ liệu
+    const handleProjectSelect = (projectName: string, data?: any) => {
+        const currentModalType = activeModal;
         setSelectedProjectName(projectName);
+        
+        if (currentModalType === 'comic' && data) {
+            setLoadedChapterData(data as Chapter);
+        }
+        
         setActiveModal(null);
-        setTimeout(() => setActiveEditor(currentModal), 300);
+        // Chuyển sang giao diện editor
+        setTimeout(() => setActiveEditor(currentModalType), 100);
     };
-
+    
     const handleBackToPlatform = () => {
         setActiveEditor(null);
         setSelectedProjectName('');
+        setLoadedChapterData(null);
     };
 
     if (activeEditor) {
         switch (activeEditor) {
             case 'rpg':
-  return <RpgEditorView gameName={selectedProjectName} files={mockRpgFiles} onGoBack={handleBackToPlatform} />;
-           case 'unity': return <UnityEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+                return <RpgEditorView gameName={selectedProjectName} files={mockRpgFiles} onGoBack={handleBackToPlatform} />;
+            case 'unity': 
+                return <UnityEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
             case 'unreal':
-  return <UnrealEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+                return <UnrealEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
             case 'comic':
-  return (
-    <ComicEditorView
-      chapterName={selectedProjectName}
-      chapterData={mockChapter}
-      onGoBack={handleBackToPlatform}
-    />
-  );
+                if (!loadedChapterData) return null;
+                return (
+                    <ComicEditorView
+                        chapterName={selectedProjectName}
+                        chapterData={loadedChapterData}
+                        onGoBack={handleBackToPlatform}
+                    />
+                );
             default: setActiveEditor(null);
         }
     }
@@ -74,18 +84,20 @@ export default function HomePage() {
                     {services.map((service) => (
                         <div key={service.id} 
                              className={`platform-card-wrapper ${service.id}-card cursor-pointer`}
+                             // Khi nhấn vào thẻ, chỉ mở modal
                              onClick={() => setActiveModal(service.id as EditorType)}
                         >
                             <ServiceCard
                                 title={service.title}
                                 description={service.description}
                                 icon={service.icon}
-                                isHighlighted={service.isHighlighted}
                             />
                         </div>
                     ))}
                 </div>
             </main>
+            
+            {/* Truyền các props cần thiết vào từng modal */}
             <RpgModal isOpen={activeModal === 'rpg'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
             <UnityModal isOpen={activeModal === 'unity'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
             <UnrealModal isOpen={activeModal === 'unreal'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
