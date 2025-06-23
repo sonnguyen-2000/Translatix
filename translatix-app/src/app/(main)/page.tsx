@@ -3,54 +3,39 @@
 import { useState } from 'react';
 import ServiceCard from '@/components/ui/ServiceCard';
 import ThemeToggleButton from '@/components/ui/ThemeToggleButton';
+import RpgModal from '@/components/modals/RpgModal';
+import UnityModal from '@/components/modals/UnityModal';
+import UnrealModal from '@/components/modals/UnrealModal';
+import ComicModal from '@/components/modals/ComicModal'; // Mới
 import RpgEditorView from '@/components/editors/RpgEditorView';
 import UnityEditorView from '@/components/editors/UnityEditorView';
 import UnrealEditorView from '@/components/editors/UnrealEditorView';
-import ComicEditorView from '@/components/editors/ComicEditorView';
+import ComicEditorView from '@/components/editors/ComicEditorView'; // Mới
 import { BookOpen, Box, Layers3, Shield } from 'lucide-react';
 import { mockChapter } from '@/data/mockChapter';
 import { mockRpgFiles } from '@/data/mockRpgFiles';
+import { mockUnityProject } from '@/data/mockUnity';
+import { mockUnrealData } from '@/data/mockUnreal';
 
 type EditorType = 'rpg' | 'unity' | 'unreal' | 'comic';
 
 export default function HomePage() {
+    const [activeModal, setActiveModal] = useState<EditorType | null>(null);
     const [activeEditor, setActiveEditor] = useState<EditorType | null>(null);
     const [selectedProjectName, setSelectedProjectName] = useState('');
-    const [isLoading, setIsLoading] = useState<EditorType | null>(null);
-    const [error, setError] = useState<string | null>(null);
 
     const services = [
         { id: 'rpg', title: "Dịch Game RPG", description: "Bản địa hóa cốt truyện, nhiệm vụ, và lời thoại nhân vật.", icon: <Shield size={32} /> },
-        { id: 'unity', title: "Dịch Game Unity", description: "Xử lý tệp ngôn ngữ, UI/UX và nội dung phức tạp.", icon: <Box size={32} /> },
+        { id: 'unity', title: "Dịch Game Unity", description: "Xử lý tệp ngôn ngữ, UI/UX và nội dung phức tạp.", icon: <Box size={32} />, isHighlighted: true },
         { id: 'unreal', title: "Dịch Game Unreal", description: "Tích hợp và dịch thuật chuyên sâu cho các dự án Unreal.", icon: <Layers3 size={32} /> },
         { id: 'comic', title: "Dịch Truyện Tranh", description: "Dịch thuật và biên tập lời thoại, giữ trọn vẹn phong cách.", icon: <BookOpen size={32} /> }
     ];
 
-    const handleStartService = async (serviceId: EditorType) => {
-        setIsLoading(serviceId);
-        setError(null);
-
-        if (!window.ipc) {
-            setError("Lỗi: Cầu nối IPC không khả dụng. Ứng dụng có đang chạy trong Electron không?");
-            setIsLoading(null);
-            return;
-        }
-
-        try {
-            const result = await window.ipc.invoke('start-processing', serviceId);
-
-            if (result.status === 'success') {
-                setSelectedProjectName(result.data.projectName);
-                setActiveEditor(serviceId);
-            } else if (result.status !== 'canceled') {
-                setError(result.message);
-            }
-        } catch (err: any) {
-            console.error("Lỗi IPC:", err);
-            setError(err.message || 'Có lỗi xảy ra khi giao tiếp với tiến trình chính.');
-        } finally {
-            setIsLoading(null);
-        }
+    const handleProjectSelect = (projectName: string) => {
+        const currentModal = activeModal;
+        setSelectedProjectName(projectName);
+        setActiveModal(null);
+        setTimeout(() => setActiveEditor(currentModal), 300);
     };
 
     const handleBackToPlatform = () => {
@@ -61,16 +46,19 @@ export default function HomePage() {
     if (activeEditor) {
         switch (activeEditor) {
             case 'rpg':
-                return <RpgEditorView gameName={selectedProjectName} files={mockRpgFiles} onGoBack={handleBackToPlatform} />;
-            case 'unity':
-                return <UnityEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+  return <RpgEditorView gameName={selectedProjectName} files={mockRpgFiles} onGoBack={handleBackToPlatform} />;
+           case 'unity': return <UnityEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
             case 'unreal':
-                return <UnrealEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
+  return <UnrealEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
             case 'comic':
-                return <ComicEditorView chapterName={selectedProjectName} chapterData={mockChapter} onGoBack={handleBackToPlatform} />;
-            default:
-                setActiveEditor(null);
-                return null;
+  return (
+    <ComicEditorView
+      chapterName={selectedProjectName}
+      chapterData={mockChapter}
+      onGoBack={handleBackToPlatform}
+    />
+  );
+            default: setActiveEditor(null);
         }
     }
 
@@ -82,25 +70,26 @@ export default function HomePage() {
                     <h1 className="text-4xl md:text-5xl font-black tracking-tight text-primary mb-3">Chọn Nền Tảng Dịch Thuật</h1>
                     <p className="text-lg text-secondary max-w-2xl mx-auto">Giải pháp bản địa hóa chuyên nghiệp cho các dự án game và truyện tranh của bạn.</p>
                 </header>
-                {error && (
-                    <div className="bg-red-500/10 text-red-500 p-3 rounded-md mb-8 max-w-2xl w-full text-center text-sm">
-                        <strong>Lỗi:</strong> {error}
-                    </div>
-                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-7xl mx-auto">
                     {services.map((service) => (
-                        <div key={service.id} className={`platform-card-wrapper ${service.id}-card`}>
+                        <div key={service.id} 
+                             className={`platform-card-wrapper ${service.id}-card cursor-pointer`}
+                             onClick={() => setActiveModal(service.id as EditorType)}
+                        >
                             <ServiceCard
                                 title={service.title}
                                 description={service.description}
                                 icon={service.icon}
-                                isLoading={isLoading === service.id}
-                                onClick={() => handleStartService(service.id as EditorType)}
+                                isHighlighted={service.isHighlighted}
                             />
                         </div>
                     ))}
                 </div>
             </main>
+            <RpgModal isOpen={activeModal === 'rpg'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
+            <UnityModal isOpen={activeModal === 'unity'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
+            <UnrealModal isOpen={activeModal === 'unreal'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
+            <ComicModal isOpen={activeModal === 'comic'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
         </div>
     );
 }
