@@ -1,17 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import ServiceCard from '@/components/ui/ServiceCard';
-import ThemeToggleButton from '@/components/ui/ThemeToggleButton';
-import RpgModal from '@/components/modals/RpgModal';
-import UnityModal from '@/components/modals/UnityModal';
-import UnrealModal from '@/components/modals/UnrealModal';
-import ComicModal from '@/components/modals/ComicModal';
+// ... các import khác của bạn
+import { RpgFileData } from '@/data/mockRpgFiles'; // Import kiểu dữ liệu
+import { BookOpen, Box, Layers3, Shield } from 'lucide-react';
+import ComicEditorView, { Chapter } from '@/components/editors/ComicEditorView';
 import RpgEditorView from '@/components/editors/RpgEditorView';
 import UnityEditorView from '@/components/editors/UnityEditorView';
 import UnrealEditorView from '@/components/editors/UnrealEditorView';
-import ComicEditorView, { Chapter } from '@/components/editors/ComicEditorView';
-import { BookOpen, Box, Layers3, Shield } from 'lucide-react';
+import RpgModal from '@/components/modals/RpgModal';
+import ComicModal from '@/components/modals/ComicModal';
+import UnityModal from '@/components/modals/UnityModal';
+import UnrealModal from '@/components/modals/UnrealModal';
+import ServiceCard from '@/components/ui/ServiceCard';
+import ThemeToggleButton from '@/components/ui/ThemeToggleButton';
 
 type EditorType = 'rpg' | 'unity' | 'unreal' | 'comic';
 
@@ -19,8 +21,6 @@ export default function HomePage() {
     const [activeModal, setActiveModal] = useState<EditorType | null>(null);
     const [activeEditor, setActiveEditor] = useState<EditorType | null>(null);
     const [selectedProjectName, setSelectedProjectName] = useState('');
-    
-    // State chung để lưu dữ liệu tải lên cho mọi loại dự án
     const [loadedProjectData, setLoadedProjectData] = useState<any>(null);
 
     const services = [
@@ -30,39 +30,56 @@ export default function HomePage() {
         { id: 'comic', title: "Dịch Truyện Tranh", description: "Dịch thuật và biên tập lời thoại, giữ trọn vẹn phong cách.", icon: <BookOpen size={32} /> }
     ];
 
-    // Hàm này được gọi từ BÊN TRONG MODAL sau khi có dữ liệu
+    // THAY THẾ TOÀN BỘ HÀM NÀY
     const handleProjectSelect = (projectName: string, data: any) => {
         const currentModalType = activeModal;
         setSelectedProjectName(projectName);
-        setLoadedProjectData(data); // Lưu tất cả dữ liệu trả về
+
+        // --- BẮT ĐẦU PHẦN CHỈNH SỬA ---
+
+        // Kiểm tra nếu là dự án RPG và có dữ liệu file
+        if (currentModalType === 'rpg' && data?.files && Array.isArray(data.files)) {
+            // Chuyển đổi mảng chuỗi đường dẫn từ backend thành mảng object mà RpgEditorView cần
+            const transformedFiles: RpgFileData[] = data.files.map((fullPath: string, index: number) => ({
+                name: fullPath.split(/[\\/]/).pop() || 'unknown.json', // Lấy tên file từ đường dẫn
+                progress: '0%', // Đặt giá trị mặc định
+                selected: index === 0, // Mặc định chọn file đầu tiên
+                checked: true, // Mặc định tick chọn tất cả
+            }));
+            // Lưu dữ liệu đã được chuyển đổi vào state
+            setLoadedProjectData({ files: transformedFiles });
+        } else {
+            // Đối với các loại dự án khác, giữ nguyên dữ liệu
+            setLoadedProjectData(data);
+        }
+
+        // --- KẾT THÚC PHẦN CHỈNH SỬA ---
         
         setActiveModal(null);
-        // Chuyển sang giao diện editor
         setTimeout(() => setActiveEditor(currentModalType), 100);
     };
     
     const handleBackToPlatform = () => {
         setActiveEditor(null);
         setSelectedProjectName('');
-        setLoadedProjectData(null); // Reset tất cả dữ liệu khi quay lại
+        setLoadedProjectData(null);
     };
 
     if (activeEditor) {
+        // ... (phần switch case giữ nguyên)
         switch (activeEditor) {
             case 'rpg':
-                // Truyền danh sách file JSON thật vào editor
                 return <RpgEditorView gameName={selectedProjectName} files={loadedProjectData?.files || []} onGoBack={handleBackToPlatform} />;
             case 'unity': 
                 return <UnityEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
             case 'unreal':
                 return <UnrealEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
             case 'comic':
-                // Chỉ render khi có dữ liệu thật
                 if (!loadedProjectData) return null;
                 return (
                     <ComicEditorView
                         chapterName={selectedProjectName}
-                        chapterData={loadedProjectData as Chapter} // Ép kiểu để component nhận đúng props
+                        chapterData={loadedProjectData as Chapter}
                         onGoBack={handleBackToPlatform}
                     />
                 );
@@ -73,6 +90,7 @@ export default function HomePage() {
     }
 
     return (
+        // ... (phần return của giao diện chính giữ nguyên)
         <div className="main-content">
             <ThemeToggleButton />
             <main className="min-h-screen flex flex-col items-center justify-center p-8">
@@ -84,7 +102,6 @@ export default function HomePage() {
                     {services.map((service) => (
                         <div key={service.id} 
                              className={`platform-card-wrapper ${service.id}-card cursor-pointer`}
-                             // Khi nhấn vào thẻ, chỉ mở modal
                              onClick={() => setActiveModal(service.id as EditorType)}
                         >
                             <ServiceCard
@@ -97,7 +114,6 @@ export default function HomePage() {
                 </div>
             </main>
             
-            {/* Truyền các props cần thiết vào từng modal */}
             <RpgModal isOpen={activeModal === 'rpg'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
             <UnityModal isOpen={activeModal === 'unity'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />
             <UnrealModal isOpen={activeModal === 'unreal'} onClose={() => setActiveModal(null)} onSelect={handleProjectSelect} />

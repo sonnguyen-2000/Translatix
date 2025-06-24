@@ -1,19 +1,18 @@
 const { ipcMain, dialog } = require('electron');
 const axios = require('axios');
+const path = require('path');
 
-// Địa chỉ của backend Python
-const API_BASE_URL = 'http://localhost:5001/api/v1';
+// Địa chỉ của backend Python đang chạy
+const API_BASE_URL = 'http://localhost:8000/api/v1';
 
 function registerIpcHandlers() {
   ipcMain.handle('start-processing', async (event, type) => {
     let dialogOptions = {};
 
-    // --- PHẦN SỬA LỖI NẰM Ở ĐÂY ---
     if (type === 'comic') {
       dialogOptions = {
-        title: 'Chọn trang truyện hoặc thư mục',
-        properties: ['openFile', 'multiSelections'], // Cho phép chọn nhiều file
-        // Cập nhật bộ lọc để hoạt động tốt hơn, đặc biệt trên Windows
+        title: 'Chọn các trang truyện',
+        properties: ['openFile', 'multiSelections'],
         filters: [
           { name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'webp', 'bmp'] },
           { name: 'All Files', extensions: ['*'] }
@@ -28,32 +27,29 @@ function registerIpcHandlers() {
             { name: 'All Files', extensions: ['*'] }
         ],
       };
-    } else { // unity, unreal
+    } else { // Dành cho unity, unreal
       dialogOptions = {
         title: 'Chọn thư mục dự án',
         properties: ['openDirectory'],
       };
     }
-    // -------------------------------------
 
     const { canceled, filePaths } = await dialog.showOpenDialog(dialogOptions);
     if (canceled || !filePaths || filePaths.length === 0) {
       return { status: 'canceled' };
     }
-    
-    // Nếu người dùng chọn thư mục, selectedPath sẽ là đường dẫn thư mục.
-    // Nếu người dùng chọn file, selectedPath sẽ là đường dẫn file đầu tiên.
-    const selectedPath = filePaths[0];
 
     try {
       const endpoint = type === 'comic' ? '/comic/process' : '/game/process';
-      
-      const response = await axios.post(`${API_BASE_URL}${endpoint}`, {
-        // Gửi đường dẫn đã chọn tới backend Python
-        path: selectedPath,
-        type: type, 
-      });
-      
+
+      // Tạo payload (dữ liệu) chính xác để gửi đi
+      const payload = type === 'comic'
+          ? { paths: filePaths } // Gửi mảng các đường dẫn file cho comic
+          : { path: filePaths[0], type: type }; // Giữ nguyên logic cũ cho game
+
+      // Gửi payload đã được tạo tới backend
+      const response = await axios.post(`${API_BASE_URL}${endpoint}`, payload);
+
       return { status: 'success', data: response.data };
 
     } catch (error) {

@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List
 
 class ProjectRequest(BaseModel):
-    path: str
+    paths: List[str]
 
 class ProjectResponse(BaseModel):
     projectName: str

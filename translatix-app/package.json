@@ -5,9 +5,10 @@
   "main": "electron/main.js",
   "homepage": "./",
   "scripts": {
-    "dev": "concurrently \"npm:dev:next\" \"npm:dev:electron\"",
-    "dev:next": "next dev --turbopack",
-    "dev:electron": "wait-on http://localhost:3000 && electron .",
+  "dev": "concurrently \"npm:dev:next\" \"npm:dev:electron\" \"npm:dev:backend\"",
+  "dev:next": "next dev --turbopack",
+  "dev:electron": "wait-on http://localhost:3000 && electron .",
+  "dev:backend": "cd ../translatix-backend && uvicorn app.main:app --reload",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

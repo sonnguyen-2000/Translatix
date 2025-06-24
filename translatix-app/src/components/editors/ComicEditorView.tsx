@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Download, Save, Sparkles, Bold, Italic, AlignCenter, Image as ImageIcon } from 'lucide-react';
 import ThemeToggleButton from '@/components/ui/ThemeToggleButton';
 
@@ -12,7 +12,7 @@ export interface Bubble {
 
 export interface Page {
   id: string;
-  url: string; // Đây sẽ là đường dẫn 'safe-file://...' đến ảnh trên máy của bạn
+  url: string; 
 }
 
 export interface Chapter {
@@ -29,6 +29,17 @@ interface ComicEditorViewProps {
 export default function ComicEditorView({ chapterName, chapterData, onGoBack }: ComicEditorViewProps) {
   const [activePageId, setActivePageId] = useState(chapterData.pages[0]?.id ?? '');
   const [activeBubbleId, setActiveBubbleId] = useState<string | null>(null);
+  
+  // -- SỬA Ở ĐÂY --
+  const sourcePageContainerRef = useRef<HTMLDivElement>(null);
+
+  // Sửa dependency từ [activePageIndex] thành [activePageId]
+  useEffect(() => {
+    if (sourcePageContainerRef.current) {
+        sourcePageContainerRef.current.scrollTop = 0;
+        sourcePageContainerRef.current.scrollLeft = 0;
+    }
+  }, [activePageId]); // <-- THAY ĐỔI Ở ĐÂY
   
   useEffect(() => {
     setActivePageId(chapterData.pages[0]?.id ?? '');
@@ -59,51 +70,51 @@ export default function ComicEditorView({ chapterName, chapterData, onGoBack }: 
 
       <div className="flex-grow flex min-h-0">
         {/* Sidebar hiển thị thumbnail các trang */}
-<aside className="w-28 bg-surface-1 border-r border-default flex-shrink-0 overflow-y-auto h-full p-2 space-y-2">
-  {chapterData.pages.map((page, index) => (
-    <div
-      key={page.id}
-      onClick={() => { setActivePageId(page.id); setActiveBubbleId(null); }}
-      className={`group flex flex-col items-center cursor-pointer p-1 rounded-md border-2 transition ${
-        page.id === activePageId ? 'border-blue-500 bg-hover' : 'border-transparent hover:border-gray-300'
-      }`}
-    >
-      <img
-        src={page.url}
-        alt={`Trang ${index + 1}`}
-        className="w-16 h-20 object-cover rounded-sm shadow-sm"
-      />
-      <span className="mt-1 text-[11px] text-center text-secondary font-medium">Trang {index + 1}</span>
-    </div>
-  ))}
-</aside>
-
-
+        <aside className="w-28 bg-surface-1 border-r border-default flex-shrink-0 overflow-y-auto h-full p-2 space-y-2">
+            {chapterData.pages.map((page, index) => (
+                <div
+                    key={page.id}
+                    onClick={() => { setActivePageId(page.id); setActiveBubbleId(null); }}
+                    className={`group flex flex-col items-center cursor-pointer p-1 rounded-md border-2 transition ${
+                        page.id === activePageId ? 'border-blue-500 bg-hover' : 'border-transparent hover:border-gray-300'
+                    }`}
+                >
+                    <img
+                        src={page.url}
+                        alt={`Trang ${index + 1}`}
+                        className="w-16 h-20 object-cover rounded-sm shadow-sm"
+                    />
+                    <span className="mt-1 text-[11px] text-center text-secondary font-medium">Trang {index + 1}</span>
+                </div>
+            ))}
+        </aside>
 
         {/* Nội dung chính */}
         <main className="flex-grow flex-1 grid grid-cols-12 gap-4 p-4 min-h-0 overflow-hidden">
           
-          {/* === SỬA Ở ĐÂY: Khôi phục bố cục 3 cột === */}
-<div className="col-span-12 md:col-span-4 bg-surface-1 flex flex-col min-h-0 card rounded-lg p-2">
-  <h3 className="text-xs uppercase font-bold text-secondary text-center mb-2">Bản gốc</h3>
-  <div className="flex-grow bg-surface-2 rounded overflow-auto p-0 w-full h-full">
-    {activePageData ? (
-      <img
-        src={activePageData.url}
-        alt="Original Page"
-        className="w-full object-contain"
-      />
-    ) : (
-      <p className="text-secondary p-4 text-center">Không có trang nào được chọn</p>
-    )}
-  </div>
-</div>
+          {/* Cột Bản gốc */}
+          <div className="col-span-12 md:col-span-4 bg-surface-1 flex flex-col min-h-0 card rounded-lg p-2">
+            <h3 className="text-xs uppercase font-bold text-secondary text-center mb-2">Bản gốc</h3>
+            <div 
+              ref={sourcePageContainerRef} // <-- Gắn ref vào đây
+              className="flex-grow bg-surface-2 rounded overflow-auto p-0 w-full h-full"
+            >
+              {activePageData ? (
+                <img
+                  src={activePageData.url}
+                  alt="Original Page"
+                  className="w-full object-contain"
+                />
+              ) : (
+                <p className="text-secondary p-4 text-center">Không có trang nào được chọn</p>
+              )}
+            </div>
+          </div>
 
-          {/* === SỬA Ở ĐÂY: Để trống khung Bản dịch === */}
+          {/* Cột Bản dịch */}
           <div className="col-span-12 md:col-span-4 bg-surface-1 flex flex-col min-h-0 card rounded-lg p-2">
             <h3 className="text-xs uppercase font-bold text-secondary text-center mb-2">Bản dịch</h3>
             <div className="flex-grow bg-surface-2 rounded flex items-center justify-center overflow-hidden p-2 text-secondary">
-              {/* Vùng này sẽ hiển thị ảnh đã được xử lý sau này */}
               <div className="text-center">
                 <ImageIcon className="mx-auto h-12 w-12 opacity-50" />
                 <p className="mt-2 text-sm">Ảnh đã dịch sẽ hiện ở đây</p>
