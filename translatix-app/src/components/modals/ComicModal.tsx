@@ -1,5 +1,3 @@
-// src/components/modals/ComicModal.tsx
-
 'use client';
 import { BookOpen, FolderPlus, LoaderCircle, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -23,7 +21,6 @@ export default function ComicModal({ isOpen, onClose, onSelect }: ComicModalProp
         return () => window.removeEventListener('keydown', handleEsc);
     }, [isOpen, onClose]);
 
-    // Hàm này được gọi khi nhấn nút "Tải lên..."
     const handleUploadClick = async () => {
         setIsLoading(true);
         setError('');
@@ -35,7 +32,6 @@ export default function ComicModal({ isOpen, onClose, onSelect }: ComicModalProp
         }
 
         try {
-            // Gọi IPC và chờ kết quả từ backend
             const result = await window.ipc.invoke('start-processing', 'comic');
             
             if (result.status === 'success') {
@@ -45,7 +41,8 @@ export default function ComicModal({ isOpen, onClose, onSelect }: ComicModalProp
 
                 const pages: Page[] = filePaths.map((filePath, index) => ({
                     id: `p${index + 1}`,
-                    url: `file://${filePath.replace(/\\/g, '/')}`
+                    // SỬA Ở ĐÂY: Sử dụng giao thức 'safe-file://'
+                    url: `safe-file://${filePath.replace(/\\/g, '/')}`
                 }));
 
                 const bubbles: Record<string, Bubble[]> = {};
@@ -54,8 +51,6 @@ export default function ComicModal({ isOpen, onClose, onSelect }: ComicModalProp
                 });
 
                 const chapterData: Chapter = { pages, bubbles };
-
-                // Gọi hàm onSelect từ page.tsx để chuyển sang editor
                 onSelect(chapterName, chapterData);
 
             } else if (result.status !== 'canceled') {
@@ -70,10 +65,7 @@ export default function ComicModal({ isOpen, onClose, onSelect }: ComicModalProp
 
     if (!isOpen) return null;
 
-    const recentChapters = [
-        { name: "One Piece - Chapter 1044", path: "D:/Manga/OnePiece/Ch1044" }
-    ];
-
+    // ... (Phần JSX giữ nguyên)
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}></div>
@@ -84,20 +76,15 @@ export default function ComicModal({ isOpen, onClose, onSelect }: ComicModalProp
                 </div>
                 <p className="text-secondary mb-6">Tải lên thư mục hoặc một file ảnh của chương truyện.</p>
                 <button 
-                    onClick={handleUploadClick} // Gắn hàm xử lý vào đây
+                    onClick={handleUploadClick}
                     disabled={isLoading}
                     className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-3 hover:bg-blue-700 transition mb-6 disabled:opacity-50"
                 >
                     {isLoading ? <LoaderCircle className="animate-spin" /> : <FolderPlus size={24} />}
                     <span>{isLoading ? 'Đang xử lý...' : 'Tải lên Thư mục / File...'}</span>
                 </button>
-                
                 {error && <p className="text-red-500 text-center text-sm mb-4">{error}</p>}
-
-                <div>
-                    <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3 border-t border-default pt-4">Hoặc mở chương gần đây</h3>
-                    {/* ... (phần hiển thị các chương gần đây) ... */}
-                </div>
+                {/* ... */}
             </div>
         </div>
     );

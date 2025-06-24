@@ -1,5 +1,3 @@
-// src/app/(main)/page.tsx
-
 'use client';
 
 import { useState } from 'react';
@@ -14,7 +12,6 @@ import UnityEditorView from '@/components/editors/UnityEditorView';
 import UnrealEditorView from '@/components/editors/UnrealEditorView';
 import ComicEditorView, { Chapter } from '@/components/editors/ComicEditorView';
 import { BookOpen, Box, Layers3, Shield } from 'lucide-react';
-import { mockRpgFiles } from '@/data/mockRpgFiles';
 
 type EditorType = 'rpg' | 'unity' | 'unreal' | 'comic';
 
@@ -22,7 +19,9 @@ export default function HomePage() {
     const [activeModal, setActiveModal] = useState<EditorType | null>(null);
     const [activeEditor, setActiveEditor] = useState<EditorType | null>(null);
     const [selectedProjectName, setSelectedProjectName] = useState('');
-    const [loadedChapterData, setLoadedChapterData] = useState<Chapter | null>(null);
+    
+    // State chung để lưu dữ liệu tải lên cho mọi loại dự án
+    const [loadedProjectData, setLoadedProjectData] = useState<any>(null);
 
     const services = [
         { id: 'rpg', title: "Dịch Game RPG", description: "Bản địa hóa cốt truyện, nhiệm vụ, và lời thoại nhân vật.", icon: <Shield size={32} /> },
@@ -32,13 +31,10 @@ export default function HomePage() {
     ];
 
     // Hàm này được gọi từ BÊN TRONG MODAL sau khi có dữ liệu
-    const handleProjectSelect = (projectName: string, data?: any) => {
+    const handleProjectSelect = (projectName: string, data: any) => {
         const currentModalType = activeModal;
         setSelectedProjectName(projectName);
-        
-        if (currentModalType === 'comic' && data) {
-            setLoadedChapterData(data as Chapter);
-        }
+        setLoadedProjectData(data); // Lưu tất cả dữ liệu trả về
         
         setActiveModal(null);
         // Chuyển sang giao diện editor
@@ -48,27 +44,31 @@ export default function HomePage() {
     const handleBackToPlatform = () => {
         setActiveEditor(null);
         setSelectedProjectName('');
-        setLoadedChapterData(null);
+        setLoadedProjectData(null); // Reset tất cả dữ liệu khi quay lại
     };
 
     if (activeEditor) {
         switch (activeEditor) {
             case 'rpg':
-                return <RpgEditorView gameName={selectedProjectName} files={mockRpgFiles} onGoBack={handleBackToPlatform} />;
+                // Truyền danh sách file JSON thật vào editor
+                return <RpgEditorView gameName={selectedProjectName} files={loadedProjectData?.files || []} onGoBack={handleBackToPlatform} />;
             case 'unity': 
                 return <UnityEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
             case 'unreal':
                 return <UnrealEditorView projectName={selectedProjectName} onGoBack={handleBackToPlatform} />;
             case 'comic':
-                if (!loadedChapterData) return null;
+                // Chỉ render khi có dữ liệu thật
+                if (!loadedProjectData) return null;
                 return (
                     <ComicEditorView
                         chapterName={selectedProjectName}
-                        chapterData={loadedChapterData}
+                        chapterData={loadedProjectData as Chapter} // Ép kiểu để component nhận đúng props
                         onGoBack={handleBackToPlatform}
                     />
                 );
-            default: setActiveEditor(null);
+            default: 
+              setActiveEditor(null);
+              return null;
         }
     }
 

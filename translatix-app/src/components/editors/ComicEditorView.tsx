@@ -1,8 +1,9 @@
 'use client';
-import { useState } from 'react';
-import { ArrowLeft, Download, Save, Sparkles, Bold, Italic, AlignCenter } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Download, Save, Sparkles, Bold, Italic, AlignCenter, Image as ImageIcon } from 'lucide-react';
 import ThemeToggleButton from '@/components/ui/ThemeToggleButton';
 
+// Các interface này định nghĩa cấu trúc dữ liệu cho một chương truyện
 export interface Bubble {
   id: string;
   text: string;
@@ -11,7 +12,7 @@ export interface Bubble {
 
 export interface Page {
   id: string;
-  url: string;
+  url: string; // Đây sẽ là đường dẫn 'safe-file://...' đến ảnh trên máy của bạn
 }
 
 export interface Chapter {
@@ -21,16 +22,21 @@ export interface Chapter {
 
 interface ComicEditorViewProps {
   chapterName: string;
-  chapterData: Chapter;
+  chapterData: Chapter; 
   onGoBack: () => void;
 }
 
 export default function ComicEditorView({ chapterName, chapterData, onGoBack }: ComicEditorViewProps) {
   const [activePageId, setActivePageId] = useState(chapterData.pages[0]?.id ?? '');
   const [activeBubbleId, setActiveBubbleId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    setActivePageId(chapterData.pages[0]?.id ?? '');
+    setActiveBubbleId(null);
+  }, [chapterData]);
 
   const activePageData = chapterData.pages.find(p => p.id === activePageId);
-  const pageBubbles = chapterData.bubbles[activePageId] || [];
+  const pageBubbles = (activePageId && chapterData.bubbles[activePageId]) || [];
   const activeBubble = activeBubbleId ? pageBubbles.find(b => b.id === activeBubbleId) : null;
 
   return (
@@ -52,42 +58,65 @@ export default function ComicEditorView({ chapterName, chapterData, onGoBack }: 
       </header>
 
       <div className="flex-grow flex min-h-0">
-        {/* Sidebar */}
-        <aside className="w-24 bg-surface-1 border-r border-default flex-shrink-0 p-2 space-y-2 overflow-y-auto">
-          {chapterData.pages.map(page => (
-            <div key={page.id}
-              onClick={() => { setActivePageId(page.id); setActiveBubbleId(null); }}
-              className={`page-thumb p-1 border-2 ${page.id === activePageId ? 'active' : 'border-transparent'} rounded-md cursor-pointer`}>
-              <img src={page.url} alt={`Page ${page.id}`} className="w-full h-auto object-contain rounded-sm" />
-            </div>
-          ))}
-        </aside>
+        {/* Sidebar hiển thị thumbnail các trang */}
+<aside className="w-28 bg-surface-1 border-r border-default flex-shrink-0 overflow-y-auto h-full p-2 space-y-2">
+  {chapterData.pages.map((page, index) => (
+    <div
+      key={page.id}
+      onClick={() => { setActivePageId(page.id); setActiveBubbleId(null); }}
+      className={`group flex flex-col items-center cursor-pointer p-1 rounded-md border-2 transition ${
+        page.id === activePageId ? 'border-blue-500 bg-hover' : 'border-transparent hover:border-gray-300'
+      }`}
+    >
+      <img
+        src={page.url}
+        alt={`Trang ${index + 1}`}
+        className="w-16 h-20 object-cover rounded-sm shadow-sm"
+      />
+      <span className="mt-1 text-[11px] text-center text-secondary font-medium">Trang {index + 1}</span>
+    </div>
+  ))}
+</aside>
 
-        {/* Main content */}
-        <main className="flex-grow flex-1 grid grid-cols-12 gap-4 p-4 min-h-0">
-          {/* Original Page */}
-          <div className="col-span-12 md:col-span-4 bg-surface-1 flex flex-col min-h-0 card rounded-lg p-2">
-            <h3 className="text-xs uppercase font-bold text-secondary text-center mb-2">Bản gốc</h3>
-            <div className="flex-grow bg-surface-2 rounded flex items-center justify-center overflow-hidden">
-              <img src={activePageData?.url} alt="Original Page" className="max-w-full max-h-full object-contain" />
-            </div>
-          </div>
 
-          {/* Translated Page */}
+
+        {/* Nội dung chính */}
+        <main className="flex-grow flex-1 grid grid-cols-12 gap-4 p-4 min-h-0 overflow-hidden">
+          
+          {/* === SỬA Ở ĐÂY: Khôi phục bố cục 3 cột === */}
+<div className="col-span-12 md:col-span-4 bg-surface-1 flex flex-col min-h-0 card rounded-lg p-2">
+  <h3 className="text-xs uppercase font-bold text-secondary text-center mb-2">Bản gốc</h3>
+  <div className="flex-grow bg-surface-2 rounded overflow-auto p-0 w-full h-full">
+    {activePageData ? (
+      <img
+        src={activePageData.url}
+        alt="Original Page"
+        className="w-full object-contain"
+      />
+    ) : (
+      <p className="text-secondary p-4 text-center">Không có trang nào được chọn</p>
+    )}
+  </div>
+</div>
+
+          {/* === SỬA Ở ĐÂY: Để trống khung Bản dịch === */}
           <div className="col-span-12 md:col-span-4 bg-surface-1 flex flex-col min-h-0 card rounded-lg p-2">
             <h3 className="text-xs uppercase font-bold text-secondary text-center mb-2">Bản dịch</h3>
-            <div className="flex-grow bg-surface-2 rounded flex items-center justify-center overflow-hidden">
-              <img src={activePageData?.url} alt="Translated Page" className="max-w-full max-h-full object-contain" />
+            <div className="flex-grow bg-surface-2 rounded flex items-center justify-center overflow-hidden p-2 text-secondary">
+              {/* Vùng này sẽ hiển thị ảnh đã được xử lý sau này */}
+              <div className="text-center">
+                <ImageIcon className="mx-auto h-12 w-12 opacity-50" />
+                <p className="mt-2 text-sm">Ảnh đã dịch sẽ hiện ở đây</p>
+              </div>
             </div>
           </div>
 
-          {/* Tool Sidebar */}
-          <div className="col-span-12 md:col-span-3 bg-surface-1 flex flex-col min-h-0 card rounded-lg">
+          {/* Cột Công cụ */}
+          <div className="col-span-12 md:col-span-4 bg-surface-1 flex flex-col min-h-0 card rounded-lg">
             <div className="p-3 border-b border-default flex-shrink-0">
               <h2 className="font-bold text-xs uppercase tracking-wider text-primary">Công cụ</h2>
             </div>
             <div className="flex-grow p-3 space-y-4 overflow-y-auto">
-              {/* Dialog bubbles */}
               <div>
                 <h4 className="font-semibold text-sm text-primary mb-2">Các Khung thoại</h4>
                 <div className="space-y-2">
@@ -95,22 +124,20 @@ export default function ComicEditorView({ chapterName, chapterData, onGoBack }: 
                     pageBubbles.map(bubble => (
                       <div key={bubble.id}
                         onClick={() => setActiveBubbleId(bubble.id)}
-                        className={`bubble-item p-2 rounded-md cursor-pointer bg-surface-2 hover:bg-hover ${bubble.id === activeBubbleId ? 'active' : ''}`}>
+                        className={`bubble-item p-2 rounded-md cursor-pointer bg-surface-2 hover:bg-hover ${bubble.id === activeBubbleId ? 'border-blue-600 border' : 'border-transparent'}`}>
                         <p className="text-xs truncate">{bubble.text || '<i>Khung thoại trống</i>'}</p>
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-secondary text-center">Không có khung thoại.</p>
+                    <p className="text-xs text-secondary text-center p-4">Không có bong bóng thoại nào cho trang này.</p>
                   )}
                 </div>
               </div>
-
-              {/* Editor */}
               <div className="border-t border-default pt-4">
                 <h4 className="font-semibold text-sm text-primary mb-2">Soạn thảo</h4>
                 <div className="space-y-3 text-secondary">
                   {!activeBubble ? (
-                    <p className="text-xs">Chọn một khung thoại để bắt đầu dịch.</p>
+                    <p className="text-xs text-center p-4">Chọn một khung thoại để bắt đầu dịch.</p>
                   ) : (
                     <>
                       <div>
