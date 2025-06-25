@@ -15,7 +15,26 @@ interface HistoryEntry {
 interface ComicModalProps {
     isOpen: boolean;
     onClose: () => void;
+    // Sửa kiểu dữ liệu ở đây
     onSelect: (chapterName: string, chapterData: Chapter) => void;
+}
+
+export interface Bubble {
+  id: string;
+  text: string;
+  translation: string;
+  coords: [number, number, number, number];
+}
+
+export interface Page {
+  id: string;
+  original_url: string;
+  inpainted_url: string;
+  bubbles: Bubble[];
+}
+
+export interface Chapter {
+  pages: Page[];
 }
 
 export default function ComicModal({ isOpen, onClose, onSelect }: ComicModalProps) {
@@ -48,25 +67,24 @@ export default function ComicModal({ isOpen, onClose, onSelect }: ComicModalProp
 
     // Hàm xử lý chung cho kết quả tải dự án
     const handleProjectLoad = (result: any) => {
-        if (result && result.status === 'success') {
-            const backendData = result.data;
-            const chapterName = backendData.projectName;
-            const filePaths: string[] = backendData.files;
+    if (result && result.status === 'success') {
+        const backendData = result.data;
+        const chapterName = backendData.projectName;
 
-            const pages: Page[] = filePaths.map((filePath, index) => ({
-                id: `p${index + 1}`,
-                url: `safe-file://${filePath.replace(/\\/g, '/')}`
-            }));
+        // Backend đã trả về cấu trúc pages chuẩn, chỉ cần lấy ra
+        const pages: Page[] = backendData.pages.map((page: any) => ({
+            ...page,
+            // Chuyển đổi đường dẫn file thành URL mà Electron có thể hiểu
+            original_url: `safe-file://${page.original_url.replace(/\\/g, '/')}`,
+            inpainted_url: `safe-file://${page.inpainted_url.replace(/\\/g, '/')}`
+        }));
 
-            const bubbles: Record<string, Bubble[]> = {};
-            pages.forEach(page => { bubbles[page.id] = []; });
-
-            const chapterData: Chapter = { pages, bubbles };
-            onSelect(chapterName, chapterData);
-        } else if (result && result.status !== 'canceled') {
-            setError(result.message);
-        }
-    };
+        const chapterData: Chapter = { pages };
+        onSelect(chapterName, chapterData);
+    } else if (result && result.status !== 'canceled') {
+        setError(result.message || 'Đã xảy ra lỗi khi xử lý dự án.');
+    }
+};
     
     // Xử lý khi click vào các nút tải lên mới
     const handleUploadClick = async (mode: 'directory' | 'files') => {

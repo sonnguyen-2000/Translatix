@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Translatix - Đang tải</title>
+    <!-- Sử dụng một phông chữ hiện đại, sạch sẽ từ Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Reset CSS cơ bản */
+        :root {
+            --bg-color: #1a1d21;
+            --primary-color: #3b82f6;
+            --text-color: #e5e7eb;
+            --text-secondary-color: #9ca3af;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px; /* Khoảng cách giữa các phần tử */
+        }
+
+        /* Thiết kế Logo SVG và hiệu ứng động */
+        .logo {
+            width: 64px;
+            height: 64px;
+        }
+
+        .logo .logo-path {
+            stroke: var(--primary-color);
+            stroke-width: 10; /* Tăng độ dày một chút cho hợp với icon mới */
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            /* Thiết lập ban đầu cho hiệu ứng tự vẽ */
+            stroke-dasharray: 500;
+            stroke-dashoffset: 500;
+            /* Gọi animation */
+            animation: draw-logo 2s ease-in-out forwards;
+        }
+
+        /* Animation cho logo */
+        @keyframes draw-logo {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* Tiêu đề ứng dụng */
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--text-color);
+            margin: 0;
+            animation: fade-in 1s ease-in-out 0.5s forwards;
+            opacity: 0;
+        }
+        
+        /* Trạng thái hiện tại */
+        .status-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary-color);
+            margin: 0;
+            animation: fade-in 1s ease-in-out 1s forwards;
+            opacity: 0;
+        }
+        
+        /* Thanh tiến trình */
+        .progress-bar {
+            width: 200px;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden; /* Quan trọng để thanh con không tràn ra ngoài */
+            margin-top: 8px;
+            animation: fade-in 1s ease-in-out 1.2s forwards;
+            opacity: 0;
+        }
+
+        .progress-bar-value {
+            width: 40%;
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+            /* Animation cho thanh tiến trình chạy qua lại */
+            animation: indeterminate-progress 2s ease-in-out infinite;
+        }
+        
+        /* Animation cho thanh tiến trình */
+        @keyframes indeterminate-progress {
+            0% {
+                transform: translateX(-150%);
+            }
+            50% {
+                transform: translateX(250%);
+            }
+            100% {
+                transform: translateX(-150%);
+            }
+        }
+        
+        /* Văn bản phụ */
+        .sub-text {
+            font-size: 12px;
+            color: var(--text-secondary-color);
+            max-width: 300px;
+            line-height: 1.5;
+            margin: 0;
+            animation: fade-in 1s ease-in-out 1.4s forwards;
+            opacity: 0;
+        }
+        
+        /* Animation mờ dần hiện ra */
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo SVG - ĐÃ ĐƯỢC CẬP NHẬT -->
+        <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Vẽ icon mới dựa trên ảnh bạn cung cấp -->
+            <path class="logo-path" d="M20 25 H 80 M 50 25 V 50 L 25 75 M 50 50 L 75 75"/>
+        </svg>
+
+        <h1 class="title">Translatix</h1>
+        <p class="status-text">Đang khởi tạo engine...</p>
+        
+        <div class="progress-bar">
+            <div class="progress-bar-value"></div>
+        </div>
+        
+        <p class="sub-text">Quá trình này có thể mất một lúc trong lần khởi động đầu tiên.</p>
+    </div>
+</body>
+</html>
