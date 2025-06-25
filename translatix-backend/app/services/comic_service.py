@@ -5,25 +5,22 @@ import cv2
 import numpy as np
 import uuid
 import traceback
+import re
 from typing import List, Dict, Any
 from paddleocr import PaddleOCR
 
 # --- Khởi tạo OCR ---
-# Hàm này khởi tạo engine OCR một lần duy nhất khi module được tải.
 def initialize_ocr_engine():
     """
     Khởi tạo và trả về một instance của PaddleOCR engine theo đúng tài liệu PP-OCR 3.0+.
-    Trả về None nếu có lỗi.
     """
     try:
         print("[dev:backend] Initializing PaddleOCR engine...")
-        # Sử dụng các tham số được tài liệu hóa trong PP-OCR 3.0+
-        # Các tham số này tắt các module tiền xử lý tài liệu, phù hợp cho truyện tranh.
         engine = PaddleOCR(
-            lang='en', # hoặc 'ch', 'japan', 'korean', v.v.
+            lang='en',
             use_doc_orientation_classify=False,
             use_doc_unwarping=False,
-            use_textline_orientation=False, # Tắt module phân loại hướng dòng chữ
+            use_textline_orientation=False,
         )
         print("[dev:backend] PaddleOCR engine initialized successfully.")
         return engine
@@ -33,7 +30,6 @@ def initialize_ocr_engine():
         traceback.print_exc()
         return None
 
-# Khởi tạo engine OCR
 ocr_engine = initialize_ocr_engine()
 
 # --- Các hằng số ---
@@ -43,61 +39,39 @@ os.makedirs(TEMP_OUTPUT_DIR, exist_ok=True)
 
 
 def process_single_page(image_path: str, output_dir: str, page_index: int) -> Dict[str, Any]:
-    """
-    Xử lý một trang truyện tranh: nhận dạng văn bản, xóa văn bản và trả về dữ liệu.
-    """
     if not ocr_engine:
         raise RuntimeError("PaddleOCR engine is not available. Please check initialization logs.")
 
     try:
-        # 1. Đọc file ảnh một cách an toàn (hỗ trợ đường dẫn có ký tự Unicode)
         img_array = np.fromfile(image_path, dtype=np.uint8)
         img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
         if img is None:
             print(f"[dev:backend] WARNING: Could not read or decode image: {image_path}")
             return None
 
-        # 2. Gọi API `predict()` của PaddleOCR theo tài liệu mới
         results = ocr_engine.predict(img)
-
-        # 3. Kiểm tra và trích xuất kết quả từ đối tượng `Result`
         mask = np.zeros(img.shape[:2], dtype=np.uint8)
         bubbles_data = []
 
-        # `results` là list chứa các đối tượng `Result`, mỗi đối tượng cho một ảnh
         if results and results[0]:
-            page_result = results[0] # Lấy đối tượng Result cho ảnh duy nhất của chúng ta
+            page_result = results[0]
+            # 👉 BỎ CÁC LOG VỀ TEXT, POLYGONS, SCORES (dễ lỗi Unicode)
+            # print("Texts:", repr(page_result.get('rec_texts', [])))
+            # print("Polygons:", page_result.get('rec_polys', []))
+            # print("Scores:", page_result.get('rec_scores', []))
 
-            # --- LOGGING ĐƯỢC THÊM VÀO ---
-            # In ra toàn bộ kết quả nhận dạng một cách chi tiết để gỡ lỗi
-            # Phương thức `print()` được tích hợp sẵn trong đối tượng Result của PaddleOCR
-            print(f"\n--- DETAILED OCR LOG FOR PAGE {page_index + 1} ---")
-            page_result.print()
-            print(f"--- END DETAILED LOG FOR PAGE {page_index + 1} ---\n")
-            # --- KẾT THÚC LOGGING ---
+            polygons = page_result['rec_polys']
+            texts = page_result['rec_texts']
+            scores = page_result['rec_scores']
 
-            # Trích xuất dữ liệu từ các thuộc tính của đối tượng Result
-            # Đảm bảo rằng các thuộc tính này tồn tại trước khi truy cập
-            detected_polygons = getattr(page_result, 'dt_polys', [])
-            recognized_texts = getattr(page_result, 'rec_texts', [])
-            recognition_scores = getattr(page_result, 'rec_scores', [])
+            for i, (points, text, score) in enumerate(zip(polygons, texts, scores)):
+                points = np.array(points, dtype=np.int32)
 
-            # 4. Xử lý từng vùng văn bản được nhận dạng
-            for i in range(len(detected_polygons)):
-                points = detected_polygons[i].astype(np.int32)
-                text = recognized_texts[i]
-                confidence = recognition_scores[i]
-
-                # Dòng print này vẫn được giữ lại để xem nhanh từng dòng
-                print(f"[DEBUG] Page {page_index + 1}, Line {i}: '{text}' (Confidence: {confidence:.2f})")
-
-                if confidence < 0.85:
-                    print(f"[DEBUG] -> Skipping low confidence detection.")
-                    continue
+                # 👉 Không log text ở đây
+                # print(f"[ACCEPTED] Adding line {i}: '{text}' (Confidence: {score:.2f})")
 
                 cv2.fillPoly(mask, [points], 255)
                 x, y, w, h = cv2.boundingRect(points)
-
                 bubbles_data.append({
                     "id": f"p{page_index + 1}_b{len(bubbles_data) + 1}",
                     "text": text,
@@ -105,17 +79,16 @@ def process_single_page(image_path: str, output_dir: str, page_index: int) -> Di
                     "coords": (x, y, w, h)
                 })
         else:
-             print(f"[dev:backend] No text detected on page {page_index + 1}: {os.path.basename(image_path)}")
+            print(f"[dev:backend] No text detected on page {page_index + 1}: {os.path.basename(image_path)}")
 
-        # 5. Inpainting: Xóa văn bản khỏi ảnh gốc
+        # Inpainting
         kernel = np.ones((13, 13), np.uint8)
         dilated_mask = cv2.dilate(mask, kernel, iterations=4)
         inpainted_img = cv2.inpaint(img, dilated_mask, inpaintRadius=15, flags=cv2.INPAINT_TELEA)
 
-        # 6. Lưu ảnh đã xóa chữ
         inpainted_filename = f"inpainted_{page_index + 1}_{os.path.basename(image_path)}.png"
         inpainted_path = os.path.join(output_dir, inpainted_filename)
-        
+
         is_success, buffer = cv2.imencode(".png", inpainted_img)
         if is_success:
             with open(inpainted_path, 'wb') as f:
